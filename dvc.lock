@@ -1,0 +1,92 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python src/prepare_data.py
+    deps:
+    - path: src/prepare_data.py
+      hash: md5
+      md5: 478e4846526427fa36c149deb86e39aa
+      size: 1288
+    params:
+      params.yaml:
+        data:
+          url: 
+            https://github.com/ultralytics/assets/releases/download/v0.0.0/brain-tumor.zip
+          dir: data/brain-tumor
+    outs:
+    - path: data/brain-tumor
+      hash: md5
+      md5: 492fd0388e3992d17628d94e1ff30188.dir
+      size: 4572757
+      nfiles: 2220
+  train:
+    cmd: python src/train.py
+    deps:
+    - path: data/brain-tumor
+      hash: md5
+      md5: 4eb6e86806db5819cf2b34c42942dc20.dir
+      size: 4819931
+      nfiles: 2222
+    - path: src/common.py
+      hash: md5
+      md5: 44f996649e6429a5161d471c22d94b5a
+      size: 1122
+    - path: src/train.py
+      hash: md5
+      md5: 9de565f7aa2597021cf0c13a9e909f01
+      size: 4286
+    params:
+      params.yaml:
+        train:
+          model: yolo11n.pt
+          epochs: 2
+          imgsz: 640
+          batch: 8
+          workers: 0
+          patience: 15
+          seed: 42
+          augment: true
+          device: ''
+    outs:
+    - path: models/best.pt
+      hash: md5
+      md5: f15d3a2adbe929f8c9043fe7b161a259
+      size: 5502810
+    - path: reports/metrics.json
+      hash: md5
+      md5: 0368c23dea168648b81df784ef2a5ab2
+      size: 175
+    - path: reports/run_id.txt
+      hash: md5
+      md5: ef5f90d29ec587346447419a171e6f5a
+      size: 32
+  export:
+    cmd: python src/export.py
+    deps:
+    - path: models/best.pt
+      hash: md5
+      md5: f15d3a2adbe929f8c9043fe7b161a259
+      size: 5502810
+    - path: src/export.py
+      hash: md5
+      md5: ac54d7d17a92a1841c9e848845857055
+      size: 3520
+    params:
+      params.yaml:
+        export:
+          imgsz: 640
+          opset: 12
+          simplify: true
+    outs:
+    - path: models/best.onnx
+      hash: md5
+      md5: 0ff87149549d0a3099d2dfcd567a6eb8
+      size: 10664353
+    - path: models/labels.json
+      hash: md5
+      md5: 57840454e1fe1c2eaa7227406cdfb169
+      size: 43
+    - path: reports/export.json
+      hash: md5
+      md5: 334f5b3c091c081a33ef9735eac18643
+      size: 380

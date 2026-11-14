@@ -7,13 +7,14 @@ data:
 
 train:
   model: yolo11n.pt      # yolo11n.pt (fast) or yolo11s.pt (more accurate)
-  epochs: 50
+  epochs: 2
   imgsz: 640
-  batch: 16
+  batch: 8
+  workers: 0             # dataloader processes (keep low on Windows)
   patience: 15           # early stopping
   seed: 42
   augment: true          # false = disable mosaic/mixup/hsv augmentations (for comparison)
-  device: ""             # "" = auto (GPU if available), "cpu", or "0"
+  device: ""              # "" = auto (GPU if available), "cpu", or "0"
 
 export:
   imgsz: 640
