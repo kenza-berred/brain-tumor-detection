@@ -53,7 +53,7 @@ jobs:
       - name: Check the pipeline graph
         run: dvc dag
 
-    docker:
+  docker:
     name: Docker — build images
     needs: [backend, frontend]
     runs-on: ubuntu-latest
