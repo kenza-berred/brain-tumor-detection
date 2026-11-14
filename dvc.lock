@@ -24,9 +24,9 @@ stages:
     deps:
     - path: data/brain-tumor
       hash: md5
-      md5: df19cc803dcc64ebf9205ff2cf075182.dir
-      size: 4819931
-      nfiles: 2222
+      md5: 492fd0388e3992d17628d94e1ff30188.dir
+      size: 4572757
+      nfiles: 2220
     - path: src/common.py
       hash: md5
       md5: 44f996649e6429a5161d471c22d94b5a
