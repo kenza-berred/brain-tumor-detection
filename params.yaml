@@ -1,0 +1,25 @@
+# Hyperparameters — read by src/train.py and tracked by DVC.
+# Change a value, run `dvc repro`, and compare the runs in MLflow.
+
+data:
+  url: https://github.com/ultralytics/assets/releases/download/v0.0.0/brain-tumor.zip
+  dir: data/brain-tumor
+
+train:
+  model: yolo11n.pt      # yolo11n.pt (fast) or yolo11s.pt (more accurate)
+  epochs: 50
+  imgsz: 640
+  batch: 16
+  patience: 15           # early stopping
+  seed: 42
+  augment: true          # false = disable mosaic/mixup/hsv augmentations (for comparison)
+  device: ""             # "" = auto (GPU if available), "cpu", or "0"
+
+export:
+  imgsz: 640
+  opset: 12
+  simplify: true
+
+mlflow:
+  experiment: brain-tumor-detection
+  registered_model: brain-tumor-detector

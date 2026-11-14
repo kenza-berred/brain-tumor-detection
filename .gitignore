@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Training outputs (big files are versioned by DVC, not git)
+runs/
+*.pt
+!yolo11n.pt
+yolo11*.pt
+mlruns/
+mlflow.db
+mlflow_data/
+
+# DVC-managed outputs (dvc adds its own .gitignore entries too)
+/data/brain-tumor
+/models/best.pt
+/models/best.onnx
+
+.DS_Store
+.env

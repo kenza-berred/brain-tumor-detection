@@ -1,0 +1,42 @@
+# Reproducible pipeline: `dvc repro` re-runs only the stages whose
+# dependencies (code, data, params) changed.  `dvc dag` shows the graph.
+stages:
+  prepare:
+    cmd: python src/prepare_data.py
+    deps:
+      - src/prepare_data.py
+    params:
+      - data
+    outs:
+      - data/brain-tumor
+
+  train:
+    cmd: python src/train.py
+    deps:
+      - src/train.py
+      - src/common.py
+      - data/brain-tumor
+    params:
+      - train
+    outs:
+      - models/best.pt
+      - reports/run_id.txt:
+          cache: false
+    metrics:
+      - reports/metrics.json:
+          cache: false
+
+  export:
+    cmd: python src/export.py
+    deps:
+      - src/export.py
+      - models/best.pt
+    params:
+      - export
+    outs:
+      - models/best.onnx
+      - models/labels.json:
+          cache: false
+    metrics:
+      - reports/export.json:
+          cache: false

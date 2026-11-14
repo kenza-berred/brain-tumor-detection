@@ -1,0 +1,36 @@
+# `docker compose up --build`  ->  App: http://localhost:3000
+#                                  API docs: http://localhost:8000/docs
+#                                  MLflow:   http://localhost:5000
+services:
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.17.2
+    command: >
+      mlflow server
+      --host 0.0.0.0 --port 5000
+      --backend-store-uri sqlite:////mlflow/mlflow.db
+      --artifacts-destination /mlflow/artifacts
+      --serve-artifacts
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlflow_data:/mlflow
+    restart: unless-stopped
+
+  api:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models:ro   # best.onnx + labels.json produced by `dvc repro`
+    environment:
+      - CORS_ORIGINS=*
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
