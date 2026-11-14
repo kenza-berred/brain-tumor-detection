@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getHealth } from "./api.js";
-import UploadView from "./components/UploadView.jsx";
-import WebcamView from "./components/WebcamView.jsx";
-import ResultPanel from "./components/ResultPanel.jsx";
+import BrainCanvas from "./components/BrainCanvas.jsx";
+import Hero from "./components/Hero.jsx";
+import Scanner from "./components/Scanner.jsx";
 
 export default function App() {
-  const [mode, setMode] = useState("upload");
-  const [conf, setConf] = useState(0.25);
-  const [result, setResult] = useState(null);
   const [health, setHealth] = useState(null);
+  const [brainState, setBrainState] = useState("idle");
+  const [focus, setFocus] = useState(0);
+  const scannerRef = useRef(null);
 
   useEffect(() => {
     const check = () => getHealth().then(setHealth).catch(() => setHealth(null));
@@ -17,52 +17,26 @@ export default function App() {
     return () => clearInterval(id);
   }, []);
 
+  // 0 on the landing screen, 1 once the scanner fills the view:
+  // the brain slides behind the scanner and dims.
+  useEffect(() => {
+    const onScroll = () => setFocus(Math.min(1, window.scrollY / (window.innerHeight * 0.8)));
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const onBrainState = useCallback((s) => setBrainState(s), []);
   const status = !health ? "offline" : health.model_loaded ? "ready" : "nomodel";
-  const statusText = { offline: "API offline", ready: "Model ready", nomodel: "Model not loaded" }[status];
+  const start = () => scannerRef.current?.scrollIntoView({ behavior: "smooth" });
 
   return (
-    <div className="app">
-      <header>
-        <div className="brand">
-          <span className="logo">🧠</span>
-          <div>
-            <h1>NeuroScan</h1>
-            <p className="muted">Brain tumor detection on MRI — YOLO11 · ONNX Runtime</p>
-          </div>
-        </div>
-        <span className={`status ${status}`}>● {statusText}</span>
-      </header>
-
-      <main>
-        <section className="left">
-          <div className="tabs">
-            <button className={mode === "upload" ? "active" : ""}
-                    onClick={() => { setMode("upload"); setResult(null); }}>Upload image</button>
-            <button className={mode === "webcam" ? "active" : ""}
-                    onClick={() => { setMode("webcam"); setResult(null); }}>Webcam</button>
-          </div>
-          {mode === "upload"
-            ? <UploadView conf={conf} onResult={setResult} />
-            : <WebcamView conf={conf} onResult={setResult} />}
-        </section>
-
-        <aside className="right">
-          <div className="panel">
-            <label className="slider-label">
-              Confidence threshold <strong>{Math.round(conf * 100)}%</strong>
-            </label>
-            <input type="range" min="0.05" max="0.95" step="0.05" value={conf}
-                   onChange={(e) => setConf(parseFloat(e.target.value))} />
-            <p className="muted small">
-              Lower = fewer missed tumors (higher recall), but more false alarms.
-            </p>
-          </div>
-          <ResultPanel result={result} />
-          <p className="disclaimer">
-            Educational project — not a medical device. Results must be reviewed by a radiologist.
-          </p>
-        </aside>
+    <>
+      <BrainCanvas state={brainState} focus={focus} />
+      <main className="page">
+        <Hero status={status} onStart={start} />
+        <Scanner sectionRef={scannerRef} onBrainState={onBrainState} />
       </main>
-    </div>
+    </>
   );
 }
