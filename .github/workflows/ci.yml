@@ -59,14 +59,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Build all services
         run: docker compose build
+
       - name: Smoke test the API container
         run: |
-          docker compose up -d api
-          for i in $(seq 1 20); do
-            curl -sf http://localhost:8000/health && break
-            sleep 2
-          done
+          docker compose up -d --wait --wait-timeout 120 api
           curl -sf http://localhost:8000/health
-          docker compose down
+
+      - name: Show API logs on failure
+        if: failure()
+        run: docker compose logs api
+
+      - name: Stop containers
+        if: always()
+        run: docker compose down
