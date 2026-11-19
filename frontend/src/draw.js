@@ -1,6 +1,8 @@
 // Draws the predicted boxes on a canvas laid over the image or video.
 // Viewfinder-style corners instead of full rectangles, to match the interface.
-const COLORS = { positive: "#ff4560", negative: "#5ce1e6" };
+import { isTumor } from "./api.js";
+
+const COLORS = { positive: "#ff4560", tumor: "#ff4560", negative: "#5ce1e6" };
 
 export function drawDetections(canvas, detections, srcWidth, srcHeight) {
   const ctx = canvas.getContext("2d");
@@ -37,12 +39,12 @@ export function drawDetections(canvas, detections, srcWidth, srcHeight) {
     ctx.stroke();
 
     // soft fill for tumors
-    if (d.label === "positive") {
+    if (isTumor(d.label)) {
       ctx.fillStyle = "rgba(255,69,96,0.10)";
       ctx.fillRect(x, y, w, h);
     }
 
-    const text = `${d.label === "positive" ? "TUMOR" : "NO TUMOR"} ${(d.confidence * 100).toFixed(0)}%`;
+    const text = `${isTumor(d.label) ? "TUMOR" : "NO TUMOR"} ${(d.confidence * 100).toFixed(0)}%`;
     ctx.font = `500 ${font}px "Barlow Condensed", sans-serif`;
     const tw = ctx.measureText(text).width + font * 0.8;
     const ty = y > font * 1.6 ? y - font * 1.5 : y + h + font * 0.3;

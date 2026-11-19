@@ -5,5 +5,7 @@ sqlalchemy<2.1         # mlflow 2.x is not compatible with SQLAlchemy 2.1
 onnx>=1.16
 onnxruntime>=1.18
 onnxslim
+onnxconverter-common>=1.14   # FP16 conversion
+sympy                        # ONNX Runtime INT8 quantization pre-processing
 dvc>=3.50
 pyyaml

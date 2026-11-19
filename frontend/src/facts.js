@@ -1,5 +1,6 @@
-// Numbers shown on the landing screen. Update them from reports/metrics.json
-// and reports/export.json if you retrain the model.
+// Numbers shown on the landing screen. They are read live from GET /model/metadata
+// (models/metadata.json, written by `dvc repro`); these values are only the fallback
+// shown while the API is offline.
 export const MODEL_FACTS = {
   model: "YOLO11N",
   recall: "84%",          // reports/export.json -> onnx_recall
@@ -18,3 +19,18 @@ export const SAMPLES = [
   { src: "/samples/tumor-4.jpg", label: "Scan G" },
   { src: "/samples/clear-4.jpg", label: "Scan H" },
 ];
+
+// Turn the API's model card into the landing-screen numbers (fallback for any missing field)
+export function factsFromMetadata(meta) {
+  if (!meta) return MODEL_FACTS;
+  const recall = meta.validation_metrics?.recall;
+  const ms = meta.benchmark?.fp32_cpu_ms ?? meta.benchmark?.onnx_cpu_ms;
+  const train = /(\d+)\s*train/.exec(meta.dataset || "");
+  return {
+    model: (meta.architecture || MODEL_FACTS.model).toUpperCase(),
+    recall: recall != null ? `${Math.round(recall * 100)}%` : MODEL_FACTS.recall,
+    mAP50: meta.validation_metrics?.mAP50?.toFixed(2) ?? MODEL_FACTS.mAP50,
+    latency: ms != null ? `${Math.round(ms)} MS` : MODEL_FACTS.latency,
+    trainImages: train ? Number(train[1]) : MODEL_FACTS.trainImages,
+  };
+}

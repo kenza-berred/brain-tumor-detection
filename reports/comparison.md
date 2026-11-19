@@ -1,0 +1,5 @@
+| run | model | epochs | augment | precision | recall | mAP50 | mAP50_95 | minutes |
+|---|---|---|---|---|---|---|---|---|
+| yolo11n-e2-aug | yolo11n | 2 | True | 0.452 | 0.798 | 0.479 | 0.316 | 1.5 |
+| yolo11s-e50-aug | yolo11s | 50 | True | 0.453 | 0.825 | 0.486 | 0.348 | 18.3 |
+| yolo11n-e50-aug | yolo11n | 50 | True | 0.45 | 0.833 | 0.498 | 0.359 | 11.9 |

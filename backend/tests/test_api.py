@@ -49,8 +49,7 @@ def test_predict_without_model_returns_503(client):
 
 
 def test_predict_ok(with_model):
-    r = with_model.post("/predict?conf=0.3",
-                        files={"file": ("scan.png", png_bytes(), "image/png")})
+    r = with_model.post("/predict?conf=0.3", files={"file": ("scan.png", png_bytes(), "image/png")})
     assert r.status_code == 200
     body = r.json()
     assert body["tumor_detected"] is True
@@ -70,8 +69,7 @@ def test_predict_rejects_corrupted_image(with_model):
 
 
 def test_predict_validates_threshold(with_model):
-    r = with_model.post("/predict?conf=5",
-                        files={"file": ("a.png", png_bytes(), "image/png")})
+    r = with_model.post("/predict?conf=5", files={"file": ("a.png", png_bytes(), "image/png")})
     assert r.status_code == 422
 
 

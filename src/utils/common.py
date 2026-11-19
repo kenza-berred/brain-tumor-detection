@@ -5,7 +5,8 @@ from pathlib import Path
 
 import yaml
 
-ROOT = Path(__file__).resolve().parents[1]
+# src/utils/common.py -> project root
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def load_params() -> dict:

@@ -1,5 +1,7 @@
 """Stage 2 — fine-tune YOLO11 on the brain tumor dataset and track everything in MLflow.
 
+Run with:  python -m src.models.train   (or `dvc repro train`)
+
 Transfer learning: we start from weights pre-trained on COCO (yolo11n.pt) and
 fine-tune all layers on our 2 classes (negative / positive).
 
@@ -16,15 +18,13 @@ import tempfile
 from pathlib import Path
 
 import yaml
-from ultralytics import YOLO, settings
+from ultralytics import settings
 
-from common import ROOT, load_params, setup_mlflow
+from src.models.architecture import NO_AUGMENT, build_model, describe
+from src.utils.common import ROOT, load_params, setup_mlflow
 
 # We log to MLflow ourselves (cleaner runs, full control) -> disable the built-in callback.
 settings.update({"mlflow": False})
-
-NO_AUGMENT = dict(mosaic=0.0, mixup=0.0, hsv_h=0.0, hsv_s=0.0, hsv_v=0.0,
-                  fliplr=0.0, translate=0.0, scale=0.0)
 
 
 def resolved_data_yaml(data_dir: Path) -> str:
@@ -51,8 +51,9 @@ def log_epoch_curves(mlflow, results_csv: Path) -> None:
             step = int(float(row.pop("epoch")))
             for key, value in row.items():
                 try:
-                    mlflow.log_metric(clean(key) if "metrics" in key else key.replace("/", "_"),
-                                      float(value), step=step)
+                    mlflow.log_metric(
+                        clean(key) if "metrics" in key else key.replace("/", "_"), float(value), step=step
+                    )
                 except ValueError:
                     pass
 
@@ -71,7 +72,8 @@ def main() -> None:
         mlflow.log_params({k: v for k, v in p.items()})
         mlflow.set_tags({"task": "detection", "dataset": "ultralytics/brain-tumor"})
 
-        model = YOLO(p["model"])  # COCO pre-trained weights = transfer learning
+        model = build_model(p["model"])  # COCO pre-trained weights = transfer learning
+        mlflow.log_params(describe(model))
         extra = {} if p["augment"] else NO_AUGMENT
         results = model.train(
             data=resolved_data_yaml(data_dir),
@@ -83,7 +85,7 @@ def main() -> None:
             seed=p["seed"],
             deterministic=True,
             device=p["device"] or None,
-            project="C:/yolo_runs",            
+            project="C:/yolo_runs",
             name="train",
             exist_ok=True,
             plots=True,
@@ -98,9 +100,14 @@ def main() -> None:
         final = {clean(k): float(v) for k, v in results.results_dict.items()}
         mlflow.log_metrics({f"final_{k}": v for k, v in final.items()})
 
-        # Plots (confusion matrix, PR curve, ...) + weights
+        # Plots (confusion matrix, PR curve, ...) + weights; key plots also go to reports/figures
+        # for the LaTeX report
+        figures = ROOT / "reports" / "figures"
+        figures.mkdir(parents=True, exist_ok=True)
         for plot in save_dir.glob("*.png"):
             mlflow.log_artifact(str(plot), artifact_path="plots")
+            if plot.name in ("results.png", "confusion_matrix_normalized.png", "BoxPR_curve.png"):
+                shutil.copy(plot, figures / plot.name)
         best = save_dir / "weights" / "best.pt"
         mlflow.log_artifact(str(best), artifact_path="weights")
         shutil.copy(best, ROOT / "models" / "best.pt")

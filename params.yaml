@@ -3,6 +3,7 @@
 
 data:
   url: https://github.com/ultralytics/assets/releases/download/v0.0.0/brain-tumor.zip
+  md5: d4409053d0a850b2a8036383b8cbac26   # archive version of 2026-11-15 (1 class, 994 train / 121 val)
   dir: data/brain-tumor
 
 train:
@@ -20,6 +21,8 @@ export:
   imgsz: 640
   opset: 12
   simplify: true
+  calibration_images: 100   # training images used to calibrate the INT8 model
+  benchmark_images: 30      # validation images timed for the CPU latency benchmark
 
 mlflow:
   experiment: brain-tumor-detection

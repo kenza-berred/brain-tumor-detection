@@ -23,6 +23,14 @@ mlflow_data/
 /data/brain-tumor
 /models/best.pt
 /models/best.onnx
+/models/best_fp16.onnx
+/models/best_int8.onnx
 
 .DS_Store
 .env
+
+# LaTeX build files (the PDF itself is committed)
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc

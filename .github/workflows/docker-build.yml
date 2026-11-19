@@ -1,0 +1,31 @@
+# Builds the Docker images (multi-stage) and smoke-tests the API container.
+name: Docker - build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  docker:
+    name: Docker — build images & smoke test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build all services
+        run: docker compose build
+
+      - name: Smoke test the API container
+        run: |
+          docker compose up -d --wait --wait-timeout 120 api
+          docker compose exec -T api python -c "import urllib.request; print(urllib.request.urlopen('http://localhost:8000/health').read().decode())"
+          docker compose ps
+
+      - name: Show API logs on failure
+        if: failure()
+        run: docker compose logs api
+
+      - name: Stop containers
+        if: always()
+        run: docker compose down

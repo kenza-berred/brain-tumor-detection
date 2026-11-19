@@ -29,15 +29,25 @@ def test_nms_removes_overlapping_box():
 
 def test_postprocess_decodes_and_filters():
     # 3 anchors, 2 classes -> output shape (1, 6, 3)
-    preds = np.array([
-        # cx, cy,  w,  h, negative, positive
-        [100, 100, 20, 20, 0.05, 0.90],   # kept: positive
-        [101, 101, 20, 20, 0.05, 0.80],   # removed by NMS (overlaps the first)
-        [300, 300, 40, 40, 0.10, 0.10],   # removed: below threshold
-    ], dtype=np.float32)
+    preds = np.array(
+        [
+            # cx, cy,  w,  h, negative, positive
+            [100, 100, 20, 20, 0.05, 0.90],  # kept: positive
+            [101, 101, 20, 20, 0.05, 0.80],  # removed by NMS (overlaps the first)
+            [300, 300, 40, 40, 0.10, 0.10],  # removed: below threshold
+        ],
+        dtype=np.float32,
+    )
     output = preds.T[None]
-    dets = postprocess(output, conf_thres=0.25, iou_thres=0.45, ratio=1.0, pad=(0, 0),
-                       orig_shape=(640, 640), labels={0: "negative", 1: "positive"})
+    dets = postprocess(
+        output,
+        conf_thres=0.25,
+        iou_thres=0.45,
+        ratio=1.0,
+        pad=(0, 0),
+        orig_shape=(640, 640),
+        labels={0: "negative", 1: "positive"},
+    )
     assert len(dets) == 1
     d = dets[0]
     assert d.label == "positive"
@@ -46,18 +56,21 @@ def test_postprocess_decodes_and_filters():
 
 
 def test_postprocess_nms_is_class_agnostic():
-    preds = np.array([
-        [100, 100, 20, 20, 0.80, 0.10],   # negative 0.80
-        [100, 100, 20, 20, 0.10, 0.60],   # positive 0.60, same region -> suppressed
-    ], dtype=np.float32)
-    dets = postprocess(preds.T[None], 0.25, 0.45, 1.0, (0, 0), (640, 640),
-                       {0: "negative", 1: "positive"})
+    preds = np.array(
+        [
+            [100, 100, 20, 20, 0.80, 0.10],  # negative 0.80
+            [100, 100, 20, 20, 0.10, 0.60],  # positive 0.60, same region -> suppressed
+        ],
+        dtype=np.float32,
+    )
+    dets = postprocess(preds.T[None], 0.25, 0.45, 1.0, (0, 0), (640, 640), {0: "negative", 1: "positive"})
     assert [d.label for d in dets] == ["negative"]
 
 
 def test_postprocess_undoes_letterbox():
     preds = np.array([[320, 320, 64, 64, 0.0, 0.9]], dtype=np.float32)
-    dets = postprocess(preds.T[None], 0.25, 0.45, ratio=2.0, pad=(0, 160),
-                       orig_shape=(160, 320), labels={1: "positive"})
+    dets = postprocess(
+        preds.T[None], 0.25, 0.45, ratio=2.0, pad=(0, 160), orig_shape=(160, 320), labels={1: "positive"}
+    )
     d = dets[0]
     assert (d.x1, d.y1, d.x2, d.y2) == (144, 64, 176, 96)

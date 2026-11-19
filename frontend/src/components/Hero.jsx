@@ -1,7 +1,15 @@
-import { LINKS } from "../api.js";
-import { MODEL_FACTS } from "../facts.js";
+import { useEffect, useState } from "react";
+import { LINKS, getModelMetadata } from "../api.js";
+import { MODEL_FACTS, factsFromMetadata } from "../facts.js";
 
 export default function Hero({ status, onStart }) {
+  // Live numbers from GET /model/metadata once the model is loaded
+  const [facts, setFacts] = useState(MODEL_FACTS);
+  useEffect(() => {
+    if (status !== "ready") return;
+    getModelMetadata().then((m) => setFacts(factsFromMetadata(m))).catch(() => {});
+  }, [status]);
+
   const statusText = {
     ready: "MODEL READY",
     nomodel: "MODEL NOT LOADED",
@@ -50,12 +58,12 @@ export default function Hero({ status, onStart }) {
       <aside className="hero-right">
         <p>
           THE MODEL FINDS<br />
-          <mark>{MODEL_FACTS.recall}</mark> <span className="dash-inline" aria-hidden="true" /><br />
+          <mark>{facts.recall}</mark> <span className="dash-inline" aria-hidden="true" /><br />
           OF TUMOR REGIONS IN SCANS<br />IT HAS NEVER SEEN
         </p>
         <span className="side-rule" aria-hidden="true" />
         <p>
-          {MODEL_FACTS.model} FINE-TUNED ON<br />{MODEL_FACTS.trainImages} SCANS, {MODEL_FACTS.latency} PER<br />SCAN ON A LAPTOP CPU
+          {facts.model} FINE-TUNED ON<br />{facts.trainImages} SCANS, {facts.latency} PER<br />SCAN ON A LAPTOP CPU
         </p>
       </aside>
 

@@ -1,20 +1,22 @@
 # Reproducible pipeline: `dvc repro` re-runs only the stages whose
 # dependencies (code, data, params) changed.  `dvc dag` shows the graph.
+# Ablation without touching the workspace:  dvc exp run --temp train -S train.augment=false
 stages:
   prepare:
-    cmd: python src/prepare_data.py
+    cmd: python -m src.data.dataset
     deps:
-      - src/prepare_data.py
+      - src/data/dataset.py
     params:
       - data
     outs:
       - data/brain-tumor
 
   train:
-    cmd: python src/train.py
+    cmd: python -m src.models.train
     deps:
-      - src/train.py
-      - src/common.py
+      - src/models/train.py
+      - src/models/architecture.py
+      - src/utils/common.py
       - data/brain-tumor
     params:
       - train
@@ -22,20 +24,30 @@ stages:
       - models/best.pt
       - reports/run_id.txt:
           cache: false
+      - reports/figures:
+          cache: false
     metrics:
       - reports/metrics.json:
           cache: false
 
   export:
-    cmd: python src/export.py
+    cmd: python -m src.models.evaluate
     deps:
-      - src/export.py
+      - src/models/evaluate.py
+      - src/utils/metrics.py
+      - src/data/dataset.py
+      - backend/app/inference.py
       - models/best.pt
+      - data/brain-tumor
     params:
       - export
     outs:
       - models/best.onnx
+      - models/best_fp16.onnx
+      - models/best_int8.onnx
       - models/labels.json:
+          cache: false
+      - models/metadata.json:
           cache: false
     metrics:
       - reports/export.json:

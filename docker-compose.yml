@@ -19,9 +19,9 @@ services:
   api:
     build: ./backend
     ports:
-      - "8001:8000"
+      - "8000:8000"
     volumes:
-      - ./models:/app/models:ro   # best.onnx + labels.json produced by `dvc repro`
+      - ./models:/app/models:ro   # best.onnx + labels.json + metadata.json produced by `dvc repro`
     environment:
       - CORS_ORIGINS=*
     restart: unless-stopped
